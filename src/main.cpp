@@ -143,6 +143,9 @@ int main(int argv, char* args[]) {
             if (menuBt.isHovered(mousePos.x, mousePos.y)) {
                 gridClock.setHidden(!clockBt.isHidden());
                 gridConfig.setHidden(!clockBt.isHidden());
+
+                if(clockBt.isHidden()) menuBt.setImgSrc("res/assets/undo.png");
+                else menuBt.setImgSrc("res/assets/menu.png");
             }
 
             if (colorBt.isHovered(mousePos.x, mousePos.y)) {
