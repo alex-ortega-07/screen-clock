@@ -14,11 +14,12 @@ public:
 	void setWidth(int w);
 	void setHeight(int h);
 
-	int updateDistribution(SDL_Renderer* renderer);
-
 	void setMargin(int m);
 	void setHidden(bool showBts);
 
+	int isHidden();
+	
+	int updateDistribution(SDL_Renderer* renderer);
 	int add(Button& bt);
 	int removeLast();
 
