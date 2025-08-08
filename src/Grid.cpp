@@ -144,3 +144,11 @@ void Grid::setHidden(bool set) {
 
 	this->hidden = set;
 }
+
+int Grid::isHidden() {
+	for (int i = 0; i < btList.size(); i++) {
+		if (btList.at(i).get().isHidden()) return 1;
+	}
+
+	return 0;
+}
