@@ -36,9 +36,12 @@ std::vector<SDL_Color> TEXTCOLOR = {
                                      { 0, 0, 0, 255 }
                                    };
 
+void formatTime(int& x, std::string& X);
 void formatTime(tm* tmL, std::string& hour, std::string& min, std::string& sec);
+void updateTime(int& min, std::string& min_s, int& sec, std::string& sec_s, std::string& actualT);
 void updateTime(time_t& currentT, std::string& actualT);
 void updateColor(Grid& g, int colorCounter, bool bg = true);
+void formatChrono(double time, std::string& txt, double diff = 0);
 
 int main(int argv, char* args[]) {
     SDL_Window* win;
@@ -80,8 +83,8 @@ int main(int argv, char* args[]) {
     int colorCounter = 0;
 
     Grid gridClock(MARGIN, MARGIN, 200, SCREEN_HEIGHT - 2 * MARGIN);
-    Button clockBt(MARGIN, MARGIN, 200, SCREEN_HEIGHT - 2 * MARGIN, actualTime.c_str(), font, TEXTCOLOR.at(colorCounter));
-    gridClock.add(clockBt);
+    Button clockLabel(actualTime.c_str(), font, TEXTCOLOR.at(colorCounter));
+    gridClock.add(clockLabel);
     gridClock.setMargin(MARGIN);
     gridClock.updateDistribution(renderer);
 
@@ -97,11 +100,32 @@ int main(int argv, char* args[]) {
     Grid gridConfig(MARGIN, MARGIN, 200, SCREEN_HEIGHT - 2 * MARGIN);
     Button moveBt(0, 0, 35, 35, "res/assets/move.png");
     Button colorBt(0, 0, 35, 35, "res/assets/color.png");
+    Button timerBt(0, 0, 35, 35, "res/assets/timer.png");
     gridConfig.add(moveBt);
     gridConfig.add(colorBt);
+    gridConfig.add(timerBt);
     gridConfig.setMargin(MARGIN);
     gridConfig.setHidden(true);
     gridConfig.updateDistribution(renderer);
+
+    std::string chronoLabelTxt = "00:00";
+    clock_t startTime = 0, elapsedTime = 0, diff = 0, diffAcumulative = 0;
+    bool chronoStarted = false;
+
+    Grid gridChrono1(MARGIN, MARGIN, 200 - 35 - 2 * MARGIN, SCREEN_HEIGHT - 2 * MARGIN);
+    Button chronoLabel(chronoLabelTxt.c_str(), font, TEXTCOLOR.at(colorCounter));
+    gridChrono1.add(chronoLabel);
+    gridChrono1.setMargin(MARGIN);
+    gridChrono1.setHidden(true);
+    gridChrono1.updateDistribution(renderer);
+
+    Grid gridChrono2(200 - 35, MARGIN, 35, SCREEN_HEIGHT - 2 * MARGIN);
+    Button playTimeBt(0, 0, 35, 35, "res/assets/play.png");
+    Button resetTimeBt(0, 0, 35, 35, "res/assets/reset.png");
+    gridChrono2.add(playTimeBt);
+    gridChrono2.setMargin(MARGIN);
+    gridChrono2.setHidden(true);
+    gridChrono2.updateDistribution(renderer);
     
 
     bool mouseState = false;
@@ -119,8 +143,8 @@ int main(int argv, char* args[]) {
 
 
         updateTime(currentTime, actualTime);
-        clockBt.setText(actualTime.c_str());
-        clockBt.setTextColor(TEXTCOLOR.at(colorCounter));
+        clockLabel.setText(actualTime.c_str());
+        clockLabel.setTextColor(TEXTCOLOR.at(colorCounter));
 
         updateColor(gridClock, colorCounter, false);
         gridClock.updateDistribution(renderer);
@@ -132,6 +156,15 @@ int main(int argv, char* args[]) {
         updateColor(gridConfig, colorCounter);
         gridConfig.updateDistribution(renderer);
 
+        if(chronoStarted) elapsedTime = clock();
+        formatChrono(static_cast<double>((elapsedTime - startTime) / CLOCKS_PER_SEC), chronoLabelTxt, static_cast<double>((diffAcumulative) / CLOCKS_PER_SEC));
+        
+        updateColor(gridChrono1, colorCounter, false);
+        gridChrono1.updateDistribution(renderer);
+
+        updateColor(gridChrono2, colorCounter);
+        gridChrono2.updateDistribution(renderer);
+
 
         SDL_PollEvent(&event);
         SDL_GetMouseState(&mousePos.x, &mousePos.y);
@@ -141,16 +174,82 @@ int main(int argv, char* args[]) {
             if (quitBt.isHovered(mousePos.x, mousePos.y)) isRunning = false;
 
             if (menuBt.isHovered(mousePos.x, mousePos.y)) {
-                gridClock.setHidden(!clockBt.isHidden());
-                gridConfig.setHidden(!clockBt.isHidden());
+                if (!gridConfig.isHidden()) {
+                    gridClock.setHidden(false);
+                    gridConfig.setHidden(true);
+                    gridChrono1.setHidden(true);
+                    gridChrono2.setHidden(true);
+                }
 
-                if(clockBt.isHidden()) menuBt.setImgSrc("res/assets/undo.png");
+                else if (!gridClock.isHidden()) {
+                    gridClock.setHidden(true);
+                    gridConfig.setHidden(false);
+                    gridChrono1.setHidden(true);
+                    gridChrono2.setHidden(true);
+                }
+
+                else if (!gridChrono1.isHidden()) {
+                    gridClock.setHidden(true);
+                    gridConfig.setHidden(false);
+                    gridChrono1.setHidden(true);
+                    gridChrono2.setHidden(true);
+                }
+
+                if(!gridConfig.isHidden() || !gridChrono1.isHidden()) menuBt.setImgSrc("res/assets/undo.png");
                 else menuBt.setImgSrc("res/assets/menu.png");
             }
 
             if (colorBt.isHovered(mousePos.x, mousePos.y)) {
                 if (colorCounter < BACKGROUND.size()) colorCounter++;
                 if (colorCounter >= BACKGROUND.size()) colorCounter = 0;
+            }
+
+            if (timerBt.isHovered(mousePos.x, mousePos.y)) {
+                gridClock.setHidden(true);
+                gridConfig.setHidden(true);
+                gridChrono1.setHidden(false);
+                gridChrono2.setHidden(false);
+
+                startTime = elapsedTime = 0;
+                chronoStarted = false;
+
+                if (gridChrono2.getBtList().size() == 2) gridChrono2.removeLast();
+                playTimeBt.setImgSrc("res/assets/play.png");
+            }
+
+            if (resetTimeBt.isHovered(mousePos.x, mousePos.y)) {
+                startTime = elapsedTime = clock();
+                diffAcumulative = 0;
+                chronoStarted = false;
+
+                if (gridChrono2.getBtList().size() == 2) gridChrono2.removeLast();
+                playTimeBt.setImgSrc("res/assets/play.png");
+            }
+
+            if (playTimeBt.isHovered(mousePos.x, mousePos.y)) {
+                chronoStarted = !chronoStarted;
+
+                if (!chronoStarted) {
+                    playTimeBt.setImgSrc("res/assets/play.png");
+
+                    diff = elapsedTime - startTime;
+                }
+
+                else {
+                    playTimeBt.setImgSrc("res/assets/pause.png");
+
+                    if (elapsedTime == startTime) {
+                        if (gridChrono2.getBtList().size() == 1) gridChrono2.add(resetTimeBt);
+
+                        startTime = clock();
+                    }
+
+                    else {
+                        startTime = clock();
+                        diffAcumulative += diff;
+                        diff = 0;
+                    }
+                }
             }
 
             mouseState = false;
@@ -191,22 +290,26 @@ int main(int argv, char* args[]) {
     return 0;
 }
 
+void formatTime(int& x, std::string& X) {
+    if (x < 10) X = "0" + std::to_string(x);
+    else X = std::to_string(x);
+}
+
 void formatTime(tm* tmL, std::string& hour, std::string& min, std::string& sec) {
     hour = std::to_string(tmL->tm_hour);
     min = std::to_string(tmL->tm_min);
     sec = std::to_string(tmL->tm_sec);
 
-    if (tmL->tm_hour < 10) {
-        hour = "0" + std::to_string(tmL->tm_hour);
-    }
+    formatTime(tmL->tm_hour, hour);
+    formatTime(tmL->tm_min, min);
+    formatTime(tmL->tm_sec, sec);
+}
 
-    if (tmL->tm_min < 10) {
-        min = "0" + std::to_string(tmL->tm_min);
-    }
+void updateTime(int& min, std::string& min_s, int& sec, std::string& sec_s, std::string& actualT) {
+    formatTime(min, min_s);
+    formatTime(sec, sec_s);
 
-    if (tmL->tm_sec < 10) {
-        sec = "0" + std::to_string(tmL->tm_sec);
-    }
+    actualT = min_s + ":" + sec_s;
 }
 
 void updateTime(time_t& currentT,std::string& actualT) {
@@ -217,6 +320,16 @@ void updateTime(time_t& currentT,std::string& actualT) {
     formatTime(tmLocal, hour, min, sec);
     
     actualT = hour + ":" + min + ":" + sec;
+}
+
+void formatChrono(double time, std::string& txt, double diff) {
+    time += diff;
+
+    int min = static_cast<int>(time) / 60;
+    int sec = static_cast<int>(time) % 60;
+
+    std::string min_s, sec_s;
+    updateTime(min, min_s, sec, sec_s, txt);
 }
 
 void updateColor(Grid& g, int colorCounter, bool bg) {
