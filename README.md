@@ -1,3 +1,3 @@
 # screen-clock
 ### Screenshots
-https://github.com/user-attachments/assets/76104a60-a5e6-4ed3-ade2-fe81ecb998cf
+https://github.com/user-attachments/assets/017db1ec-8e63-4a37-a452-7c19db41d6e6
