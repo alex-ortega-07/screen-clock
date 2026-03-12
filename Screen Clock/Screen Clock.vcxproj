@@ -125,6 +125,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\vclib\SDL\SDL2_image\lib\x64;C:\vclib\SDL\SDL2_ttf\lib\x64;C:\vclib\SDL\SDL2\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,10 +140,11 @@
       <AdditionalIncludeDirectories>C:\vclib\SDL\SDL2_image\include;C:\vclib\SDL\SDL2_ttf\include;C:\vclib\SDL\SDL2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\vclib\SDL\SDL2_image\lib\x64;C:\vclib\SDL\SDL2_ttf\lib\x64;C:\vclib\SDL\SDL2\lib\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
