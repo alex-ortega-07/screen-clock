@@ -1,0 +1,21 @@
+# --- Visual Studio ---
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# --- Build Folders ---
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+
+# --- vcpkg ---
+vcpkg_installed/
+
+# --- Operating System Files ---
+.DS_Store
+Thumbs.db
