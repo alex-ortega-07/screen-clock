@@ -42,6 +42,8 @@ int Button::create(SDL_Renderer* renderer) {
 
         SDL_Rect destRect = { this->posx, this->posy, this->width, this->height };
         SDL_RenderCopy(renderer, texture, NULL, &destRect);
+
+        SDL_DestroyTexture(texture);
     }
 
     else {
